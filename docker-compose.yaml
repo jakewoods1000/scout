@@ -1,0 +1,13 @@
+version: '3.9'
+
+services:
+  postgres:
+    container_name: "CFD-Dev"
+    image: "postgres:14.0-alpine"
+    restart: always
+    environment:
+      POSTGRES_USER: "User"
+      POSTGRES_PASSWORD: "Password"
+      POSTGRES_DB: "CFD-Dev"
+    ports:
+      - "5432:5432"
