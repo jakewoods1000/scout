@@ -6,6 +6,10 @@ import com.app.cfd.models.Exercise;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -46,6 +50,12 @@ public class ExerciseController {
         }
         return new ResponseEntity(response, status);
     }
+
+//    @Secured("ROLE_VIEWER")
+//    public String getUsername() {
+//        SecurityContext securityContext = SecurityContextHolder.getContext();
+//        return securityContext.getAuthentication().getName();
+//    }
 
     @GetMapping()
     ResponseEntity exercises() {
