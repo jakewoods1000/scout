@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.UUID;
 
 @RestController
@@ -20,11 +21,11 @@ public class TagController {
     }
 
     @PostMapping()
-    ResponseEntity createTag(@RequestBody Tag tag) {
+    ResponseEntity createTag(@RequestBody Tag tag, Principal principal) {
         HttpStatusCode status = HttpStatus.CREATED;
         Object response;
         try {
-            response = tagService.insert(tag);
+            response = tagService.insert(principal.getName(), tag);
         } catch (Exception e) {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
             response = e.getMessage();
@@ -59,11 +60,11 @@ public class TagController {
     }
 
     @PutMapping("/{id}")
-    ResponseEntity updateTag(@RequestBody Tag tag) {
+    ResponseEntity updateTag(@RequestBody Tag tag, Principal principal) {
         HttpStatusCode status = HttpStatus.OK;
         Object response = null;
         try {
-            tagService.updateTag(tag);
+            tagService.updateTag(principal.getName(), tag);
         } catch (Exception e) {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
             response = e.getMessage();

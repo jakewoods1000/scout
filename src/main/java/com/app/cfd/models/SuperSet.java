@@ -13,10 +13,13 @@ public class SuperSet {
     private String name;
     @Nullable
     private String description;
-    private List<UUID> setIds;
+    @Nullable
+    private List<OrderedId> orderedSetIds;
     private Integer reps;
+    private String userId;
+    private boolean adminUser;
     @Nullable
-    private LocalDateTime created_at;
+    private LocalDateTime createdAt;
     @Nullable
-    private LocalDateTime updated_at;
+    private LocalDateTime updatedAt;
 }

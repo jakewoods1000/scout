@@ -2,15 +2,18 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 CREATE TABLE IF NOT EXISTS exercises
 (
-    id            uuid NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
-    name          varchar NOT NULL,
-    description   varchar,
-    created_at    timestamp NOT NULL default current_timestamp,
-    updated_at    timestamp NOT NULL default current_timestamp
+    id          uuid      NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
+    name        varchar   NOT NULL,
+    description varchar,
+    user_id     varchar,
+    admin_user  boolean   NOT NULL             default false,
+    created_at  timestamp NOT NULL             default current_timestamp,
+    updated_at  timestamp NOT NULL             default current_timestamp
 );
 
-CREATE  FUNCTION update_updated_on_exercises()
-    RETURNS TRIGGER AS $$
+CREATE FUNCTION update_updated_on_exercises()
+    RETURNS TRIGGER AS
+$$
 BEGIN
     NEW.updated_at = now();
     RETURN NEW;

@@ -2,11 +2,12 @@ package com.app.cfd.services;
 
 import com.app.cfd.daos.TagDao;
 import com.app.cfd.daos.WorkoutDao;
-import com.app.cfd.models.Tag;
+import com.app.cfd.models.OrderedId;
 import com.app.cfd.models.Workout;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -21,45 +22,52 @@ public class WorkoutService {
 
     public UUID insert(Workout workout) {
         return workoutDao.inTransaction(transactional -> {
-            UUID workoutId = transactional.insert(workout.getName(),
-                    workout.getDescription());
-            insertSuperSetWorkoutJoins(workoutId, workout.getSuperSetIds());
+            UUID workoutId = transactional.insert(workout);
+            if (workout.getOrderedSuperSetIds() != null) {
+                insertSuperSetWorkoutJoins(workoutId, workout.getOrderedSuperSetIds());
+            }
             return workoutId;
         });
     }
 
-    public Workout getWorkout(UUID id) {
-        Workout workout = workoutDao.getWorkout(id);
-        List<UUID> superSetIds = workoutDao.getSuperSetIdsByWorkoutId(id);
-        workout.setSuperSetIds(superSetIds);
+    public Workout getWorkoutById(UUID id) {
+        Workout workout = workoutDao.findById(id);
+        List<OrderedId> orderedSuperSetIds = workoutDao.getSuperSetIdsByWorkoutId(id);
+        workout.setOrderedSuperSetIds(orderedSuperSetIds);
         return workout;
     }
 
     public void deleteById(UUID id) {
         workoutDao.useTransaction(transactional -> {
-            List<UUID> superSetIds = transactional.getSuperSetIdsByWorkoutId(id);
-            deleteSuperSetWorkoutJoins(id, superSetIds);
+            transactional.deleteAllSuperSetWorkoutLinks(id);
+            transactional.deleteWorkout(id);
         });
     }
 
     public void updateWorkout(Workout workout) {
-        workoutDao.useTransaction(transactional -> {
-            List<UUID> oldSuperSetIds = transactional.getSuperSetIdsByWorkoutId(workout.getId());
-            transactional.update(workout.getId(), workout.getName(), workout.getDescription());
-            deleteSuperSetWorkoutJoins(workout.getId(), oldSuperSetIds);
-            insertSuperSetWorkoutJoins(workout.getId(), workout.getSuperSetIds());
-        });
-    }
-
-    private void insertSuperSetWorkoutJoins(UUID workoutId, List<UUID> superSetIds) {
-        for (UUID superSetId : superSetIds) {
-            workoutDao.insertSuperSetWorkoutLink(superSetId, workoutId);
+        if (Objects.equals(workout.getUserId(), workoutDao.findById(workout.getId()).getUserId())) {
+            workoutDao.useTransaction(transactional -> {
+                List<OrderedId> oldSuperSetIds = transactional.getSuperSetIdsByWorkoutId(workout.getId());
+                transactional.update(workout.getId(), workout.getName(), workout.getDescription());
+                deleteSuperSetWorkoutJoins(workout.getId(), oldSuperSetIds);
+                if (workout.getOrderedSuperSetIds() != null) {
+                    insertSuperSetWorkoutJoins(workout.getId(), workout.getOrderedSuperSetIds());
+                }
+            });
+        } else {
+            insert(workout);
         }
     }
 
-    private void deleteSuperSetWorkoutJoins(UUID workoutId, List<UUID> superSetIds) {
-        for (UUID superSetId : superSetIds) {
-            workoutDao.deleteSuperSetWorkoutLink(superSetId, workoutId);
+    private void insertSuperSetWorkoutJoins(UUID workoutId, List<OrderedId> orderedSuperSetIds) {
+        for (OrderedId orderedId : orderedSuperSetIds) {
+            workoutDao.insertSuperSetWorkoutLink(orderedId.getId(), orderedId.getOrder(), workoutId);
+        }
+    }
+
+    private void deleteSuperSetWorkoutJoins(UUID workoutId, List<OrderedId> superSetIds) {
+        for (OrderedId superSetId : superSetIds) {
+            workoutDao.deleteSuperSetWorkoutLink(superSetId.getId(), workoutId);
         }
         tagDao.deleteJoinsFromWorkoutsByWorkoutId(workoutId);
     }

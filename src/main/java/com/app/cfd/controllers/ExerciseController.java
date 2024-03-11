@@ -1,36 +1,55 @@
 package com.app.cfd.controllers;
 
 import com.app.cfd.daos.ExerciseDao;
-import com.app.cfd.daos.TagDao;
 import com.app.cfd.models.Exercise;
+import com.app.cfd.services.ExerciseService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/exercises")
 public class ExerciseController {
+    private final ExerciseService exerciseService;
     private final ExerciseDao exerciseDao;
-    private final TagDao tagDao;
 
-    public ExerciseController(ExerciseDao exerciseDao, TagDao tagDao) {
+    public ExerciseController(ExerciseService exerciseService, ExerciseDao exerciseDao) {
+        this.exerciseService = exerciseService;
         this.exerciseDao = exerciseDao;
-        this.tagDao = tagDao;
     }
 
     @PostMapping()
-    ResponseEntity createExercise(@RequestBody Exercise exercise) {
+    ResponseEntity createExercise(@RequestBody Exercise exercise, Principal principal) {
         HttpStatusCode status = HttpStatus.CREATED;
         Object response;
         try {
-            response = exerciseDao.insert(exercise.getName(), exercise.getDescription());
+            exercise.setUserId(principal.getName());
+            response = exerciseDao.insert(exercise);
+        } catch (Exception e) {
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+            response = e.getMessage();
+        }
+        return new ResponseEntity(response, status);
+    }
+
+    @PostMapping("/bulk-create")
+    ResponseEntity bulkCreateExercise(@RequestBody List<Exercise> exercises, Principal principal) {
+        HttpStatusCode status = HttpStatus.CREATED;
+        Object response;
+        try {
+//            TODO: Should this be done in a transaction instead? Just thinking about how this might be weird if we get
+//            half-way through a bulk insert then it blows up, half are created, then if you rerun the bulk insert
+//            you end up with doubles of the first half that was successful...
+            for (Exercise exercise : exercises) {
+                exercise.setUserId(principal.getName());
+                exerciseDao.insert(exercise);
+            }
+            response = "Successfully Inserted Records";
         } catch (Exception e) {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
             response = e.getMessage();
@@ -51,11 +70,6 @@ public class ExerciseController {
         return new ResponseEntity(response, status);
     }
 
-//    @Secured("ROLE_VIEWER")
-//    public String getUsername() {
-//        SecurityContext securityContext = SecurityContextHolder.getContext();
-//        return securityContext.getAuthentication().getName();
-//    }
 
     @GetMapping()
     ResponseEntity exercises() {
@@ -71,11 +85,12 @@ public class ExerciseController {
     }
 
     @PutMapping()
-    ResponseEntity updateExercise(@RequestBody Exercise exercise) {
+    ResponseEntity updateExercise(@RequestBody Exercise exercise, Principal principal) {
         HttpStatusCode status = HttpStatus.OK;
         Object response = null;
         try {
-            exerciseDao.updateExercise(exercise.getName(), exercise.getDescription(), exercise.getId());
+            exercise.setUserId(principal.getName());
+            exerciseService.updateExercise(exercise);
         } catch (Exception e) {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
             response = e.getMessage();
@@ -88,10 +103,7 @@ public class ExerciseController {
         HttpStatusCode status = HttpStatus.OK;
         Object response = null;
         try {
-            exerciseDao.useTransaction(transactional -> {
-                tagDao.deleteJoinsFromExercisesByExerciseId(id);
-                exerciseDao.deleteById(id);
-            });
+            exerciseService.deleteExercise(id);
         } catch (Exception e) {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
             response = e.getMessage();

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -17,8 +18,8 @@ public class TagService {
         this.tagDao = tagDao;
     }
 
-    public UUID insert(Tag tag) {
-        return tagDao.insert(tag.getName(), tag.getDescription(),
+    public UUID insert(String userId, Tag tag) {
+        return tagDao.insert(userId, tag.getName(), tag.getDescription(),
                 tag.getType());
     }
 
@@ -30,9 +31,13 @@ public class TagService {
         return tagDao.getAllTags();
     }
 
-    public void updateTag(Tag tag) {
-        tagDao.updateTag(tag.getId(), tag.getName(),
-                tag.getType(), tag.getDescription());
+    public void updateTag(String userId, Tag tag) {
+        if (Objects.equals(userId, tagDao.getTag(tag.getId()).getUserId())) {
+            tagDao.updateTag(tag.getId(), tag.getName(),
+                    tag.getType(), tag.getDescription());
+        } else {
+            insert(userId, tag);
+        }
     }
 
     public void deleteById(UUID id) {
@@ -55,8 +60,8 @@ public class TagService {
         });
     }
 
-    void deleteAllJoinsOnTag(UUID tagId){
-         tagDao.useTransaction(transactional -> {
+    void deleteAllJoinsOnTag(UUID tagId) {
+        tagDao.useTransaction(transactional -> {
             tagDao.deleteJoinsFromSuperSetsByTagId(tagId);
             tagDao.deleteJoinsFromSetsByTagId(tagId);
             tagDao.deleteJoinsFromExercisesByTagId(tagId);

@@ -14,7 +14,8 @@ import java.util.UUID;
 public interface TagDao extends Transactional<TagDao> {
     @SqlUpdate("insert into tags (name, description, type) values(:name, :description, :type)")
     @GetGeneratedKeys
-    UUID insert(@Bind("name") String tagName,
+    UUID insert(@Bind("user_id") String userId,
+                @Bind("name") String tagName,
                 @Bind("description") String description,
                 @Bind("type") Tag.Type type);
 
@@ -62,7 +63,7 @@ public interface TagDao extends Transactional<TagDao> {
     @SqlUpdate("insert into exercises_tags_join (tag_id, exercise_id) values(:tagId, :exerciseId)")
     @GetGeneratedKeys
     UUID tagExercise(@Bind("tagId") UUID tagId,
-                @Bind("exerciseId") UUID exerciseId);
+                     @Bind("exerciseId") UUID exerciseId);
 
     @SqlUpdate("insert into super_sets_tags_join (tag_id, super_set_id) values(:tagId, :superSetId)")
     @GetGeneratedKeys
@@ -72,10 +73,10 @@ public interface TagDao extends Transactional<TagDao> {
     @SqlUpdate("insert into sets_tags_join (tag_id, set_id) values(:tagId, :setId)")
     @GetGeneratedKeys
     UUID tagSet(@Bind("tagId") UUID tagId,
-                     @Bind("setId") UUID setId);
+                @Bind("setId") UUID setId);
 
     @SqlUpdate("insert into workouts_tags_join (tag_id, workout_id) values(:tagId, :workoutId)")
     @GetGeneratedKeys
     UUID tagWorkout(@Bind("tagId") UUID tagId,
-                     @Bind("workoutId") UUID workoutId);
+                    @Bind("workoutId") UUID workoutId);
 }

@@ -13,10 +13,12 @@ public class Tag {
     @Nullable
     private String description;
     private Type type;
+    private String userId;
+    private boolean adminUser;
     @Nullable
-    private LocalDateTime created_at;
+    private LocalDateTime createdAt;
     @Nullable
-    private LocalDateTime updated_at;
+    private LocalDateTime updatedAt;
 
     public enum Type {MUSCLE_GROUP, STYLE, OTHER}
 }

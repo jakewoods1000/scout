@@ -1,36 +1,53 @@
 package com.app.cfd.controllers;
 
 import com.app.cfd.daos.SetDao;
-import com.app.cfd.daos.TagDao;
 import com.app.cfd.models.Set;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.app.cfd.services.SetService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/sets")
 public class SetController {
+    private final SetService setService;
     private final SetDao setDao;
-    private final TagDao tagDao;
-    private final ObjectMapper objectMapper;
 
-    public SetController(SetDao setDao, TagDao tagDao) {
+    public SetController(SetService setService, SetDao setDao) {
+        this.setService = setService;
         this.setDao = setDao;
-        this.objectMapper = new ObjectMapper();
-        this.tagDao = tagDao;
     }
 
     @PostMapping()
-    ResponseEntity createSet(@RequestBody Set set) {
+    ResponseEntity createSet(@RequestBody Set set, Principal principal) {
         HttpStatusCode status = HttpStatus.CREATED;
         Object response;
         try {
-            response = setDao.insert(set.getName(), set.getDescription(),
-                    objectMapper.writeValueAsString(set.getQuantity()), set.getExercise_id(), set.getStyle());
+            set.setUserId(principal.getName());
+            response = setDao.insert(set, setService.getQuantityAsString(set.getQuantity()));
+        } catch (Exception e) {
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+            response = e.getMessage();
+        }
+        return new ResponseEntity(response, status);
+    }
+
+    @PostMapping("/bulk-create")
+    ResponseEntity createBulkSet(@RequestBody List<Set> sets, Principal principal) {
+        HttpStatusCode status = HttpStatus.CREATED;
+        Object response;
+        try {
+//            TODO: Same transaction question as with Exercises
+            for (Set set : sets) {
+                set.setUserId(principal.getName());
+                setDao.insert(set, setService.getQuantityAsString(set.getQuantity()));
+            }
+            response = "Successfully created sets";
         } catch (Exception e) {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
             response = e.getMessage();
@@ -39,13 +56,12 @@ public class SetController {
     }
 
     @GetMapping("/{id}")
-    ResponseEntity setById(@PathVariable UUID id){
+    ResponseEntity setById(@PathVariable UUID id) {
         HttpStatusCode status = HttpStatus.OK;
         Object response;
         try {
-            response = setDao.getSet(id);
-        }
-        catch(Exception e) {
+            response = setDao.findById(id);
+        } catch (Exception e) {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
             response = e.getMessage();
         }
@@ -58,8 +74,7 @@ public class SetController {
         Object response;
         try {
             response = setDao.getAllSets();
-        }
-        catch(Exception e) {
+        } catch (Exception e) {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
             response = e.getMessage();
         }
@@ -67,14 +82,13 @@ public class SetController {
     }
 
     @PutMapping()
-    ResponseEntity updateSet(@RequestBody Set set){
+    ResponseEntity updateSet(@RequestBody Set set, Principal principal) {
         HttpStatusCode status = HttpStatus.OK;
         Object response = null;
         try {
-            setDao.updateSet(set.getId(), set.getName(), set.getDescription(),
-                    objectMapper.writeValueAsString(set.getQuantity()), set.getExercise_id(), set.getStyle());
-        }
-        catch(Exception e) {
+            set.setUserId(principal.getName());
+            setService.updateSet(set);
+        } catch (Exception e) {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
             response = e.getMessage();
         }
@@ -86,12 +100,8 @@ public class SetController {
         HttpStatusCode status = HttpStatus.OK;
         Object response = null;
         try {
-            setDao.useTransaction(transactional -> {
-                tagDao.deleteJoinsFromSetsBySetId(id);
-                transactional.deleteById(id);
-            });
-        }
-        catch(Exception e) {
+            setService.deleteById(id);
+        } catch (Exception e) {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
             response = e.getMessage();
         }

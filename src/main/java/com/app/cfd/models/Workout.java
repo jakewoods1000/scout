@@ -13,9 +13,12 @@ public class Workout {
     private String name;
     @Nullable
     private String description;
-    private List<UUID> superSetIds;
     @Nullable
-    private LocalDateTime created_at;
+    private List<OrderedId> orderedSuperSetIds;
+    private String userId;
+    private boolean adminUser;
     @Nullable
-    private LocalDateTime updated_at;
+    private LocalDateTime createdAt;
+    @Nullable
+    private LocalDateTime updatedAt;
 }

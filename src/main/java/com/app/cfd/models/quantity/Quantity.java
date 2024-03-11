@@ -13,5 +13,5 @@ import lombok.Data;
 })
 @Data
 public class Quantity<T> {
-    protected  T quantity;
+    protected T quantity;
 }

@@ -13,11 +13,13 @@ public class Set {
     private String name;
     @Nullable
     private String description;
-    private UUID exercise_id;
+    private UUID exerciseId;
     private String style;
     private Quantity quantity;
+    private String userId;
+    private boolean adminUser;
     @Nullable
-    private LocalDateTime created_at;
+    private LocalDateTime createdAt;
     @Nullable
-    private LocalDateTime updated_at;
+    private LocalDateTime updatedAt;
 }

@@ -36,11 +36,6 @@ public class JdbiConfig {
     }
 
     @Bean
-    public UserValidationDao userValidationDao(Jdbi jdbi) {
-        return jdbi.onDemand(UserValidationDao.class);
-    }
-
-    @Bean
     public TagDao tagDao(Jdbi jdbi) {
         return jdbi.onDemand(TagDao.class);
     }

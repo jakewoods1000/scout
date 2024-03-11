@@ -25,4 +25,19 @@ spring:
 
 external:
   server:
-    address: http://localhost:8080
+    address: http://localhost:3000
+
+server:
+  port: 3000
+
+
+okta:
+  oauth2:
+#    This is the actual app url
+    issuer: https://dev-ix48gk13ziy7zfxi.us.auth0.com/
+#    These are found in the app settings, they need to be rotated and moved into secrets when we are ready
+    client-id: n8EQKSvZPbXFW3HUhuf0Xyzq981QtX1U
+    client-secret: K_YWI2fxtjiK_N0al4m1C01iEDV7oslc8NZBy0EjQ0QyPTJBPjJ2Q0JnHe9qYUwF
+#    This is configured in the Auth0 portal. It's the identifier of the API we created
+#    https://manage.auth0.com/dashboard/us/dev-ix48gk13ziy7zfxi/apis/65e0fa96ad9c2c69a94d7589/settings
+    audience: thisisatest
