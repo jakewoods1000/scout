@@ -46,9 +46,8 @@ public class SuperSetService {
 
     public void deleteById(UUID id) {
         superSetDao.useTransaction(transactional -> {
-            List<UUID> setIds = transactional.getSetIdsBySuperSetId(id);
-            deleteSetSuperSetJoins(id, setIds);
-            transactional.deleteSuperSetWorkoutLink(id);
+            transactional.deleteAllSetSuperSetLinks(id);
+            transactional.deleteSuperSetWorkoutLinks(id);
             transactional.deleteSuperSet(id);
         });
     }
@@ -76,9 +75,7 @@ public class SuperSetService {
     }
 
     private void deleteSetSuperSetJoins(UUID superSetId, List<UUID> setIds) {
-        for (UUID setId : setIds) {
-            superSetDao.deleteSetSuperSetLink(setId, superSetId);
-        }
+        superSetDao.deleteSetSuperSetLink(setIds, superSetId);
         tagDao.deleteJoinsFromSuperSetsBySuperSetId(superSetId);
     }
 }

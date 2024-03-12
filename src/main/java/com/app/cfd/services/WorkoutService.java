@@ -6,6 +6,7 @@ import com.app.cfd.models.OrderedId;
 import com.app.cfd.models.Workout;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -65,10 +66,12 @@ public class WorkoutService {
         }
     }
 
-    private void deleteSuperSetWorkoutJoins(UUID workoutId, List<OrderedId> superSetIds) {
-        for (OrderedId superSetId : superSetIds) {
-            workoutDao.deleteSuperSetWorkoutLink(superSetId.getId(), workoutId);
+    private void deleteSuperSetWorkoutJoins(UUID workoutId, List<OrderedId> orderedSuperSetIds) {
+        List<UUID> superSetIds = new ArrayList<>();
+        for (OrderedId orderedId : orderedSuperSetIds) {
+            superSetIds.add(orderedId.getId());
         }
+        workoutDao.deleteSuperSetWorkoutLinks(superSetIds, workoutId);
         tagDao.deleteJoinsFromWorkoutsByWorkoutId(workoutId);
     }
 }

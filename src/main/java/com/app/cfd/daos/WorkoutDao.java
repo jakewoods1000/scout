@@ -5,6 +5,7 @@ import com.app.cfd.models.Workout;
 import org.jdbi.v3.sqlobject.config.RegisterBeanMapper;
 import org.jdbi.v3.sqlobject.customizer.Bind;
 import org.jdbi.v3.sqlobject.customizer.BindBean;
+import org.jdbi.v3.sqlobject.customizer.BindList;
 import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
@@ -38,8 +39,8 @@ public interface WorkoutDao extends Transactional<WorkoutDao> {
     @SqlUpdate("delete from workouts where id = :workoutId")
     void deleteWorkout(@Bind("workoutId") UUID id);
 
-    @SqlUpdate("delete from super_sets_workouts_join where workout_id = :workoutId and super_set_id = :superSetId")
-    void deleteSuperSetWorkoutLink(@Bind("superSetId") UUID superSetId,
+    @SqlUpdate("delete from super_sets_workouts_join where workout_id = :workoutId and super_set_id in (<superSetIds>)")
+    void deleteSuperSetWorkoutLinks(@BindList List<UUID> superSetIds,
                                    @Bind("workoutId") UUID workoutId);
 
     @SqlUpdate("delete from super_sets_workouts_join where workout_id = :workoutId")

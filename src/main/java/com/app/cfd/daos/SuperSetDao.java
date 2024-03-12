@@ -5,6 +5,7 @@ import com.app.cfd.models.SuperSet;
 import org.jdbi.v3.sqlobject.config.RegisterBeanMapper;
 import org.jdbi.v3.sqlobject.customizer.Bind;
 import org.jdbi.v3.sqlobject.customizer.BindBean;
+import org.jdbi.v3.sqlobject.customizer.BindList;
 import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
@@ -42,14 +43,16 @@ public interface SuperSetDao extends Transactional<SuperSetDao> {
     @RegisterBeanMapper(OrderedId.class)
     List<OrderedId> getOrderedSetIdsBySuperSetId(@Bind("super_set_id") UUID superSetId);
 
-    @SqlUpdate("delete from sets_super_sets_join where set_id = :set_id and super_set_id = :super_set_id")
-    void deleteSetSuperSetLink(@Bind("set_id") UUID setId,
+    @SqlUpdate("delete from sets_super_sets_join where set_id in (<setIds>) and super_set_id = :super_set_id")
+    void deleteSetSuperSetLink(@BindList List<UUID> setIds,
                                @Bind("super_set_id") UUID superSetId);
+
+    @SqlUpdate("delete from sets_super_sets_join where super_set_id = :super_set_id")
+    void deleteAllSetSuperSetLinks(@Bind("super_set_id") UUID superSetId);
 
     @SqlUpdate("delete from super_sets where id = :super_set_id")
     void deleteSuperSet(@Bind("super_set_id") UUID id);
 
     @SqlUpdate("delete from super_sets_workouts_join where super_set_id = :super_set_id")
-    void deleteSuperSetWorkoutLink(@Bind("super_set_id") UUID id);
-
+    void deleteSuperSetWorkoutLinks(@Bind("super_set_id") UUID id);
 }
